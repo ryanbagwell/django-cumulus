@@ -186,7 +186,9 @@ Below are the default settings::
         'AUTH_URL': 'us_authurl',
         'CNAMES': None,
         'CONTAINER': None,
+        'PREFIX': '',
         'SERVICENET': False,
+        'STATIC_PREFIX': (your STATIC_URL value)
         'TIMEOUT': 5,
         'TTL': 86400,
         'USE_SSL': False,
@@ -228,6 +230,11 @@ FILTER_LIST
 
 A list of items to exclude when using the ``syncstatic`` management command. Defaults to an empty list.
 
+PREFIX
+------
+
+The default prefix used by ``CloudFilesStorage``. Unless you provide a different value to the constructor, every file saved by that storage backend will have this value prepended to its name.
+
 SERVICENET
 ----------
 
@@ -237,6 +244,11 @@ STATIC_CONTAINER
 ----------------
 
 When using Django's ``collectstatic`` or django-cumulus's ``syncstatic`` command, this is the name of the container you want static files to be uploaded to.
+
+STATIC_PREFIX
+-------------
+
+The default prefix used by ``CloudFilesStaticStorage``. For example, if you use ``"static/"``, all static files in the container will start with that.
 
 TIMEOUT
 -------
