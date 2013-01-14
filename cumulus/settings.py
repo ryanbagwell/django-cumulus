@@ -7,7 +7,9 @@ CUMULUS = {
     'AUTH_URL': 'us_authurl',
     'CNAMES': None,
     'CONTAINER': None,
+    'PREFIX': '',
     'SERVICENET': False,
+    'STATIC_PREFIX': settings.STATIC_URL.lstrip('/'),  # FIXME: This is for backwards compatibility but it probably makes more sense to use 'static/'
     'TIMEOUT': 5,
     'TTL': 600,
     'USE_SSL': False,
