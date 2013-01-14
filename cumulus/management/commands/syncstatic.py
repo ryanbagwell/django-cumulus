@@ -77,7 +77,7 @@ class Command(BaseCommand):
                 print "Wipe would delete %d objects." % self.container.object_count
             else:
                 print "Deleting %d objects..." % self.container.object_count
-                for cloud_obj in self.container.get_objects():
+                for cloud_obj in self.container.get_objects(prefix=self.STATIC_PREFIX):
                     self.container.delete_object(cloud_obj.name)
 
         # walk through the directory, creating or updating files on the cloud
@@ -135,7 +135,7 @@ class Command(BaseCommand):
 
     def delete_files(self):
         # remove any objects on the cloud that don't exist locally
-        for cloud_name in self.container.list_objects():
+        for cloud_name in self.container.list_objects(prefix=self.STATIC_PREFIX):
             if cloud_name not in self.local_object_names:
                 self.delete_count += 1
                 if self.verbosity > 1:
