@@ -8,7 +8,9 @@ CUMULUS = {
     'AUTH_URL': 'us_authurl',
     'CNAMES': None,
     'CONTAINER': None,
+    'PREFIX': '',
     'SERVICENET': False,
+    'STATIC_PREFIX': settings.STATIC_URL.lstrip('/'),  # FIXME: This is for backwards compatibility but it probably makes more sense to use 'static/'
     'TIMEOUT': 5,
     'TTL': default_cdn_ttl,  # 86400s (24h), python-cloudfiles default
     'USE_SSL': False,

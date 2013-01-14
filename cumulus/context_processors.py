@@ -1,5 +1,5 @@
 from django.conf import settings
-
+from cumulus.settings import CUMULUS
 from cumulus.storage import CloudFilesStorage, CloudFilesStaticStorage
 
 def _get_container_urls(cloudfiles_storage):
@@ -13,9 +13,9 @@ def cdn_url(request):
     A context processor to expose the full CDN URL in templates.
     """
     cdn_url, ssl_url = _get_container_urls(CloudFilesStorage())
-    static_url = settings.STATIC_URL
+    static_prefix = CUMULUS.get('STATIC_PREFIX', '')
 
-    return {'CDN_URL': cdn_url+static_url, 'CDN_SSL_URL': ssl_url+static_url}
+    return {'CDN_URL': cdn_url+static_prefix, 'CDN_SSL_URL': ssl_url+static_prefix}
 
 def static_cdn_url(request):
     """
@@ -24,5 +24,6 @@ def static_cdn_url(request):
     """
     cdn_url, ssl_url = _get_container_urls(CloudFilesStaticStorage())
     static_url = settings.STATIC_URL
+    static_prefix = CUMULUS.get('STATIC_PREFIX', '')
 
-    return {'STATIC_URL': cdn_url+static_url, 'STATIC_SSL_URL': ssl_url+static_url, 'LOCAL_STATIC_URL': static_url}
+    return {'STATIC_URL': cdn_url+static_prefix, 'STATIC_SSL_URL': ssl_url+static_prefix, 'LOCAL_STATIC_URL': static_url}

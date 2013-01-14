@@ -33,13 +33,13 @@ class Command(BaseCommand):
 
     # paths
     DIRECTORY        = os.path.abspath(settings.STATIC_ROOT)
-    STATIC_URL       = settings.STATIC_URL
+    STATIC_PREFIX    = CUMULUS['STATIC_PREFIX']
 
     if not DIRECTORY.endswith('/'):
         DIRECTORY = DIRECTORY + '/'
 
-    if STATIC_URL.startswith('/'):
-        STATIC_URL = STATIC_URL[1:]
+    if STATIC_PREFIX.startswith('/'):
+        STATIC_PREFIX = STATIC_PREFIX[1:]
 
     local_object_names = []
     create_count = 0
@@ -104,7 +104,7 @@ class Command(BaseCommand):
             if os.path.isdir(file_path):
                 continue # Don't try to upload directories
 
-            object_name = self.STATIC_URL + file_path.split(self.DIRECTORY)[1]
+            object_name = self.STATIC_PREFIX + file_path.split(self.DIRECTORY)[1]
             self.local_object_names.append(object_name)
 
             try:
