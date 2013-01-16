@@ -1,6 +1,8 @@
+import datetime
 import mimetypes
 import os
 from StringIO import StringIO
+import time
 
 import cloudfiles
 from cloudfiles.errors import NoSuchObject, ResponseError
@@ -208,6 +210,26 @@ class CloudFilesStorage(Storage):
         directly by a web browser.
         """
         return '%s/%s' % (self.container_url, name)
+
+    def modified_time(self, name):
+        """
+        Returns the last modified time (as datetime object) of the file
+        specified by name.
+        """
+        try:
+            cloud_obj = self._get_cloud_obj(name)
+        except NoSuchObject:
+            return None
+
+        mtime = (cloud_obj.last_modified and
+                datetime.datetime.strptime(cloud_obj.last_modified,
+                "%a, %d %b %Y %H:%M:%S %Z") or None)
+
+        if mtime:
+            # The time returned by Cloud Files is in UTC. We need to convert it
+            # to match our timezone.
+            offset = time.timezone if (time.localtime().tm_isdst == 0) else time.altzone
+            return mtime - datetime.timedelta(seconds=offset)
 
 
 class CloudStorageDirectory(File):
