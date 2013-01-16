@@ -30,13 +30,13 @@ class Command(BaseCommand):
 
     # paths
     DIRECTORY        = os.path.abspath(settings.STATIC_ROOT)
-    STATIC_URL       = settings.STATIC_URL
+    STATIC_PREFIX    = CUMULUS['STATIC_PREFIX']
 
     if not DIRECTORY.endswith('/'):
         DIRECTORY = DIRECTORY + '/'
 
-    if STATIC_URL.startswith('/'):
-        STATIC_URL = STATIC_URL[1:]
+    if STATIC_PREFIX.startswith('/'):
+        STATIC_PREFIX = STATIC_PREFIX[1:]
 
     local_object_names = []
     create_count = 0
@@ -73,7 +73,7 @@ class Command(BaseCommand):
                 print "Wipe would delete %d objects." % self.container.object_count
             else:
                 print "Deleting %d objects..." % self.container.object_count
-                for cloud_obj in self.container.get_objects():
+                for cloud_obj in self.container.get_objects(prefix=self.STATIC_PREFIX):
                     self.container.delete_object(cloud_obj.name)
 
         # walk through the directory, creating or updating files on the cloud
@@ -100,7 +100,7 @@ class Command(BaseCommand):
             if os.path.isdir(file_path):
                 continue # Don't try to upload directories
 
-            object_name = self.STATIC_URL + file_path.split(self.DIRECTORY)[1]
+            object_name = self.STATIC_PREFIX + file_path.split(self.DIRECTORY)[1]
             self.local_object_names.append(object_name)
 
             try:
@@ -130,7 +130,7 @@ class Command(BaseCommand):
 
     def delete_files(self):
         # remove any objects on the cloud that don't exist locally
-        for cloud_name in self.container.list_objects():
+        for cloud_name in self.container.list_objects(prefix=self.STATIC_PREFIX):
             if cloud_name not in self.local_object_names:
                 self.delete_count += 1
                 if self.verbosity > 1:

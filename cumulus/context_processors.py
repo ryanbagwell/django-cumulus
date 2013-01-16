@@ -1,6 +1,6 @@
-from django.conf import settings
-
+from cumulus.settings import CUMULUS
 from cumulus.storage import CloudFilesStorage
+
 
 def cdn_url(request):
     """
@@ -8,8 +8,7 @@ def cdn_url(request):
 
     """
     cloudfiles_storage = CloudFilesStorage()
-    static_url = settings.STATIC_URL
     container_url = cloudfiles_storage._get_container_url()
-    cdn_url = container_url + static_url
+    cdn_url = container_url + CUMULUS.get('STATIC_PREFIX', '')
 
     return {'CDN_URL': cdn_url}

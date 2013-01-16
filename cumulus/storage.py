@@ -18,7 +18,7 @@ class CloudFilesStorage(Storage):
     default_quick_listdir = True
 
     def __init__(self, username=None, api_key=None, container=None, timeout=None,
-                 connection_kwargs=None):
+                 connection_kwargs=None, prefix=None):
         """
         Initialize the settings for the connection and container.
         """
@@ -29,6 +29,7 @@ class CloudFilesStorage(Storage):
         self.timeout = timeout or CUMULUS['TIMEOUT']
         self.use_servicenet = CUMULUS['SERVICENET']
         self.username = username or CUMULUS['USERNAME']
+        self.prefix = prefix or CUMULUS['PREFIX']
         self.use_ssl = CUMULUS['USE_SSL']
 
 
@@ -89,11 +90,14 @@ class CloudFilesStorage(Storage):
 
     container_url = property(_get_container_url)
 
+    def _prefixed(self, name):
+        return self.prefix + name
+
     def _get_cloud_obj(self, name):
         """
         Helper function to get retrieve the requested Cloud Files Object.
         """
-        return self.container.get_object(name)
+        return self.container.get_object(self._prefixed(name))
 
     def _open(self, name, mode='rb'):
         """
@@ -106,15 +110,17 @@ class CloudFilesStorage(Storage):
         Use the Cloud Files service to write ``content`` to a remote file
         (called ``name``).
         """
+        new_name = self._prefixed(name)
         (path, last) = os.path.split(name)
+        prefixed_path = self._prefixed(path)
         if path:
             try:
-                self.container.get_object(path)
+                self.container.get_object(prefixed_path)
             except NoSuchObject:
                 self._save(path, CloudStorageDirectory(path))
 
         content.open()
-        cloud_obj = self.container.create_object(name)
+        cloud_obj = self.container.create_object(new_name)
         if hasattr(content.file, 'size'):
             cloud_obj.size = content.file.size
         else:
@@ -126,7 +132,7 @@ class CloudFilesStorage(Storage):
         elif hasattr(content, 'content_type'):
             cloud_obj.content_type = content.content_type
         else:
-            mime_type, encoding = mimetypes.guess_type(name)
+            mime_type, encoding = mimetypes.guess_type(new_name)
             cloud_obj.content_type = mime_type
         cloud_obj.send(content)
         content.close()
@@ -136,6 +142,7 @@ class CloudFilesStorage(Storage):
         """
         Deletes the specified file from the storage system.
         """
+        name = self._prefixed(name)
         try:
             self.container.delete_object(name)
         except ResponseError, exc:
@@ -163,6 +170,7 @@ class CloudFilesStorage(Storage):
 
         If the list of directories is required, use the full_listdir method.
         """
+        path = self._prefixed(path)
         files = []
         if path and not path.endswith('/'):
             path = '%s/' % path
@@ -180,6 +188,7 @@ class CloudFilesStorage(Storage):
         because every single object must be returned (cloudfiles does not
         provide an explicit way of listing directories).
         """
+        path = self._prefixed(path)
         dirs = set()
         files = []
         if path and not path.endswith('/'):
@@ -207,7 +216,7 @@ class CloudFilesStorage(Storage):
         Returns an absolute URL where the file's contents can be accessed
         directly by a web browser.
         """
-        return '%s/%s' % (self.container_url, name)
+        return '%s/%s' % (self.container_url, self._prefixed(name))
 
 
 class CloudStorageDirectory(File):
@@ -246,6 +255,8 @@ class CloudFilesStaticStorage(CloudFilesStorage):
     def __init__(self, *args, **kwargs):
         if not 'container' in kwargs:
             kwargs['container'] = CUMULUS['STATIC_CONTAINER']
+        if not 'prefix' in kwargs:
+            kwargs['prefix'] = CUMULUS['STATIC_PREFIX']
         super(CloudFilesStaticStorage, self).__init__(*args, **kwargs)
 
 
