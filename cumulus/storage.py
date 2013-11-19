@@ -18,6 +18,7 @@ class CloudFilesStorage(Storage):
     Custom storage for Rackspace Cloud Files.
     """
     default_quick_listdir = True
+    existing_files = []
 
     def __init__(self, username=None, api_key=None, container=None, timeout=None,
                  connection_kwargs=None, prefix=None):
@@ -158,10 +159,12 @@ class CloudFilesStorage(Storage):
         Returns True if a file referenced by the given name already exists in
         the storage system, or False if the name is available for a new file.
         """
-        try:
-            self._get_cloud_obj(name)
+
+        existing_files = self._get_existing_files()
+
+        if filter(lambda x: (x.name == name), existing_files):
             return True
-        except NoSuchObject:
+        else:
             return False
 
     def listdir(self, path):
@@ -239,6 +242,17 @@ class CloudFilesStorage(Storage):
             # to match our timezone.
             offset = time.timezone if (time.localtime().tm_isdst == 0) else time.altzone
             return mtime - datetime.timedelta(seconds=offset)
+
+    def _get_existing_files(self):
+        """
+        Returns a list of existing files in the
+        container for comparison
+        """
+
+        if not self.existing_files:
+            self.existing_files = self.container.get_objects()
+
+        return self.existing_files
 
 
 class CloudStorageDirectory(File):
